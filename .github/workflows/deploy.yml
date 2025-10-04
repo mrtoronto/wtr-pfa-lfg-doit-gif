@@ -21,8 +21,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv sync --all-groups
-          uv pip list | grep pytest
+          uv sync
       
       - name: Create test settings file
         run: |
