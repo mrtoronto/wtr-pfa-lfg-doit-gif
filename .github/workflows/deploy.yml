@@ -62,23 +62,22 @@ jobs:
           echo "StrictHostKeyChecking no" >> ~/.ssh/config
           
           # Deploy to server
-          ssh $USERNAME@$HOST << 'ENDSSH'
-            cd pfa
-            git pull origin main
-            $HOME/.local/bin/uv sync --frozen
-            echo "SECRET_KEY = '$SECRET_KEY'" > local_settings.py
-            echo "DATABASE_URL = 'postgresql://$DB_USER:$DB_PASSWORD@localhost/$DB_NAME'" >> local_settings.py
-            echo "$SUDO_PASSWORD" | sudo -S cp ./deploy/configs/systemd/myapp.service /etc/systemd/system/myapp.service
-            echo "$SUDO_PASSWORD" | sudo -S systemctl daemon-reload
-            if [ -d /etc/nginx/sites-available ]; then
-              echo "$SUDO_PASSWORD" | sudo -S cp ./deploy/configs/nginx/myapp.conf /etc/nginx/sites-available/myapp
-              echo "$SUDO_PASSWORD" | sudo -S ln -sf /etc/nginx/sites-available/myapp /etc/nginx/sites-enabled/myapp
-            else
-              echo "$SUDO_PASSWORD" | sudo -S cp ./deploy/configs/nginx/myapp.conf /etc/nginx/conf.d/myapp.conf
-            fi
-            echo "$SUDO_PASSWORD" | sudo -S nginx -t
-            echo "$SUDO_PASSWORD" | sudo -S systemctl reload nginx
-            $HOME/.local/bin/uv run sh migrate_db.sh
-            echo "$SUDO_PASSWORD" | sudo -S systemctl restart myapp
-ENDSSH
+          ssh $USERNAME@$HOST "
+            cd pfa &&
+            git pull origin main &&
+            ~/.local/bin/uv sync --frozen &&
+            echo \"SECRET_KEY = '$SECRET_KEY'\" > local_settings.py &&
+            echo \"DATABASE_URL = 'postgresql://$DB_USER:$DB_PASSWORD@localhost/$DB_NAME'\" >> local_settings.py &&
+            echo \"$SUDO_PASSWORD\" | sudo -S cp ./deploy/configs/systemd/myapp.service /etc/systemd/system/myapp.service &&
+            echo \"$SUDO_PASSWORD\" | sudo -S systemctl daemon-reload &&
+            if [ -d /etc/nginx/sites-available ]; then \
+              echo \"$SUDO_PASSWORD\" | sudo -S cp ./deploy/configs/nginx/myapp.conf /etc/nginx/sites-available/myapp && \
+              echo \"$SUDO_PASSWORD\" | sudo -S ln -sf /etc/nginx/sites-available/myapp /etc/nginx/sites-enabled/myapp ; \
+            else \
+              echo \"$SUDO_PASSWORD\" | sudo -S cp ./deploy/configs/nginx/myapp.conf /etc/nginx/conf.d/myapp.conf ; \
+            fi &&
+            echo \"$SUDO_PASSWORD\" | sudo -S nginx -t && echo \"$SUDO_PASSWORD\" | sudo -S systemctl reload nginx &&
+            ~/.local/bin/uv run sh migrate_db.sh &&
+            echo \"$SUDO_PASSWORD\" | sudo -S systemctl restart myapp
+          "
 
