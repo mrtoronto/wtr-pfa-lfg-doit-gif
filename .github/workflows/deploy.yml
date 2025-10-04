@@ -20,7 +20,9 @@ jobs:
         uses: astral-sh/setup-uv@v4
 
       - name: Install dependencies
-        run: uv sync --all-groups
+        run: |
+          uv sync --all-groups
+          uv pip list | grep pytest
       
       - name: Create test settings file
         run: |
@@ -33,7 +35,7 @@ jobs:
         env:
           RUN_MODE: test
         run: |
-          uv run python -m pytest tests/ -v --cov=app
+          uv run python -m pytest tests/ -v
 
   deploy:
     needs: test
