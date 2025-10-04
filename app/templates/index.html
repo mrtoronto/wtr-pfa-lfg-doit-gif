@@ -3,11 +3,65 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-    <h1>Welcome to My Flask App</h1>
-    {% if current_user.is_authenticated %}
-        <p>Hello, {{ current_user.username }}!</p>
-    {% else %}
-        <p>Please <a href="{{ url_for('main.login') }}">log in</a> to continue.</p>
-    {% endif %}
+    <div class="dashboard-container">
+        <h1 class="dashboard-title">
+            {% if current_user.is_authenticated %}
+                Welcome back, {{ current_user.username }}! 💰
+            {% else %}
+                Your Financial Journey Starts Here
+            {% endif %}
+        </h1>
+        
+        <div class="tiles-wrapper">
+            <div class="tile-grid">
+                <!-- Budget Tile -->
+                <a href="#" class="tile tile-budget">
+                    <div class="tile-icon">💵</div>
+                    <div class="tile-content">
+                        <h2 class="tile-title">Budget</h2>
+                        <p class="tile-description">Track your spending</p>
+                    </div>
+                </a>
+                
+                <!-- Savings Tile -->
+                <a href="#" class="tile tile-savings">
+                    <div class="tile-icon">🏦</div>
+                    <div class="tile-content">
+                        <h2 class="tile-title">Savings</h2>
+                        <p class="tile-description">Reach your goals</p>
+                    </div>
+                </a>
+                
+                <!-- Investments Tile -->
+                <a href="#" class="tile tile-investments">
+                    <div class="tile-icon">💎</div>
+                    <div class="tile-content">
+                        <h2 class="tile-title">Investments</h2>
+                        <p class="tile-description">Grow your wealth</p>
+                    </div>
+                </a>
+                
+                <!-- Settings Tile -->
+                <a href="{{ url_for('main.settings') }}" class="tile tile-settings">
+                    <div class="tile-icon">⚙️</div>
+                    <div class="tile-content">
+                        <h2 class="tile-title">Settings</h2>
+                        <p class="tile-description">Manage your account</p>
+                    </div>
+                </a>
+                
+                <!-- Center Logo -->
+                <div class="center-logo">
+                    <div class="logo-emoji">📈</div>
+                </div>
+            </div>
+        </div>
+        
+        {% if not current_user.is_authenticated %}
+            <p class="login-prompt">
+                <a href="{{ url_for('main.login') }}" class="login-link">Log in</a> to access your dashboard
+            </p>
+        {% endif %}
+    </div>
 {% endblock %}
 

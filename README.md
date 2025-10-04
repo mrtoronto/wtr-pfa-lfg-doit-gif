@@ -35,20 +35,6 @@ cd <your-repo-name>
 
 # Quick setup (recommended)
 ./setup_dev.sh
-
-# OR Manual setup:
-# Install dependencies
-uv sync --all-groups
-
-# Create .flaskenv from example
-cp .flaskenv.example .flaskenv
-
-# Create local_settings.py from example
-cp local_settings.example.py local_settings.py
-# Edit local_settings.py and set your SECRET_KEY
-
-# Setup database
-uv run sh migrate_db.sh
 ```
 
 ### Running the Application
@@ -64,7 +50,7 @@ uv run python wsgi.py
 uv run flask run
 ```
 
-Visit `http://127.0.0.1:5000` in your browser.
+Visit `http://127.0.0.1:4200` in your browser.
 
 ### Database Migrations
 

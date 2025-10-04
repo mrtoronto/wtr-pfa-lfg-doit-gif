@@ -23,7 +23,7 @@ def client(app):
 def test_index(client):
     response = client.get('/')
     assert response.status_code == 200
-    assert b'Welcome' in response.data
+    assert b'Your Financial Journey Starts Here' in response.data
 
 def test_register_page(client):
     response = client.get('/register')
