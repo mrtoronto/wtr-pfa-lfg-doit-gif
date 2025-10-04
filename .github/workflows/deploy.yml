@@ -33,7 +33,7 @@ jobs:
         env:
           RUN_MODE: test
         run: |
-          uv run pytest tests/ -v --cov=app
+          uv run python -m pytest tests/ -v --cov=app
 
   deploy:
     needs: test
