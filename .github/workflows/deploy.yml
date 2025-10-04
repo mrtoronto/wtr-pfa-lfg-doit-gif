@@ -52,6 +52,10 @@ jobs:
           HOST: ${{ secrets.SERVER_HOST }}
           USERNAME: ${{ secrets.SERVER_USERNAME }}
           SUDO_PASSWORD: ${{ secrets.SUDO_PASSWORD }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           # Disable strict host key checking
           mkdir -p ~/.ssh
@@ -59,10 +63,15 @@ jobs:
           
           # Deploy to server
           ssh $USERNAME@$HOST "
-            cd myapp &&
+            cd pfa &&
             git pull origin main &&
-            curl -LsSf https://astral.sh/uv/install.sh | sh &&
-            ~/.local/bin/uv sync --frozen &&
+            \$HOME/.local/bin/uv sync --frozen &&
+            # Create local_settings.py with secrets
+            cat > local_settings.py << 'EOF'
+SECRET_KEY = '${SECRET_KEY}'
+DATABASE_URL = 'postgresql://${DB_USER}:${DB_PASSWORD}@localhost/${DB_NAME}'
+EOF
+            &&
             # Update systemd service
             echo \"$SUDO_PASSWORD\" | sudo -S cp ./deploy/configs/systemd/myapp.service /etc/systemd/system/myapp.service &&
             echo \"$SUDO_PASSWORD\" | sudo -S systemctl daemon-reload &&
@@ -77,7 +86,7 @@ jobs:
             echo \"$SUDO_PASSWORD\" | sudo -S nginx -t &&
             echo \"$SUDO_PASSWORD\" | sudo -S systemctl reload nginx &&
             # Run migrations
-            ~/.local/bin/uv run sh migrate_db.sh &&
+            \$HOME/.local/bin/uv run sh migrate_db.sh &&
             # Restart app
             echo \"$SUDO_PASSWORD\" | sudo -S systemctl restart myapp
           "

@@ -30,8 +30,8 @@ A production-ready Flask web application with HTML/Jinja templates, nginx revers
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Clone the repository
-git clone <your-repo-url>
-cd <your-repo-name>
+git clone https://github.com/mrtoronto/wtr-pfa-lfg-doit-gif.git
+cd wtr-pfa-lfg-doit-gif
 
 # Quick setup (recommended)
 ./setup_dev.sh
@@ -77,6 +77,70 @@ uv run pytest tests/ -v --cov=app --cov-report=html
 
 ## Production Deployment
 
+### Initial SSH Setup for DigitalOcean
+
+Before setting up your server, you need to create and configure SSH keys.
+
+1. **Generate SSH Key (on your local machine):**
+
+```bash
+# Generate SSH key
+ssh-keygen -t ed25519 -C "your_email@example.com"
+
+# When prompted:
+# - File location: Press Enter (default: ~/.ssh/id_ed25519)
+# - Passphrase: Optional - press Enter to skip or add for extra security
+```
+
+2. **Add SSH Key to DigitalOcean:**
+
+```bash
+# Copy your public key
+cat ~/.ssh/id_ed25519.pub
+```
+
+- Go to DigitalOcean → **Settings** → **Security** → **SSH Keys**
+- Click **Add SSH Key**
+- Paste your public key (starts with `ssh-ed25519 ...`)
+- Give it a name (e.g., "My MacBook")
+- Click **Add SSH Key**
+
+3. **Create Droplet:**
+
+- When creating your droplet, **select your SSH key** under "Authentication"
+- Choose Ubuntu 22.04 LTS
+- Note your server's IP address (e.g., `64.227.105.186`)
+
+4. **Connect to Server:**
+
+```bash
+# Connect as root (first time)
+ssh root@YOUR_SERVER_IP
+```
+
+5. **Create Non-Root User (IMPORTANT - Security Best Practice):**
+
+```bash
+# Create user (replace 'youruser' with your preferred username)
+adduser youruser
+
+# Add user to sudo group
+usermod -aG sudo youruser
+
+# Copy SSH keys to new user
+rsync --archive --chown=youruser:youruser ~/.ssh /home/youruser
+
+# Test new user (open a NEW terminal window, keep root session open)
+ssh youruser@YOUR_SERVER_IP
+
+# If the above works, you can optionally disable root login:
+sudo vim /etc/ssh/sshd_config
+# Change: PermitRootLogin yes → PermitRootLogin no
+sudo systemctl restart ssh
+```
+
+**From now on, use your non-root user for all operations!**
+
 ### Server Setup (Ubuntu 22.04)
 
 1. **Update system and install dependencies:**
@@ -107,10 +171,11 @@ GRANT ALL PRIVILEGES ON DATABASE myapp_db TO myapp_user;
 
 ```bash
 cd ~
-git clone <your-repo-url> myapp
-cd myapp
+git clone https://github.com/mrtoronto/wtr-pfa-lfg-doit-gif.git pfa
+cd pfa
 
 # Create local_settings.py
+# Note: If using GitHub Actions CI/CD, this will be created automatically on deploy
 cat > local_settings.py << 'EOF'
 SECRET_KEY = 'your-super-secret-key-here'
 DATABASE_URL = 'postgresql://myapp_user:your_secure_password@localhost/myapp_db'
@@ -120,16 +185,14 @@ EOF
 uv sync
 
 # Initialize database
-uv run flask db init
-uv run flask db migrate
-uv run flask db upgrade
+uv run sh migrate_db.sh
 ```
 
 5. **Configure systemd service:**
 
 ```bash
 # Edit the service file with your paths and user
-nano deploy/configs/systemd/myapp.service
+vim deploy/configs/systemd/myapp.service
 
 # Copy and enable service
 sudo cp deploy/configs/systemd/myapp.service /etc/systemd/system/myapp.service
@@ -143,7 +206,7 @@ sudo systemctl status myapp
 
 ```bash
 # Edit the nginx config with your domain
-nano deploy/configs/nginx/myapp.conf
+vim deploy/configs/nginx/myapp.conf
 
 # Copy and enable nginx config
 sudo cp deploy/configs/nginx/myapp.conf /etc/nginx/sites-available/myapp
@@ -164,12 +227,38 @@ sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
 
 ### CI/CD Setup (GitHub Actions)
 
-Add the following secrets to your GitHub repository (Settings → Secrets and variables → Actions):
+The GitHub Actions workflow automatically deploys your app when you push to `main`. It will handle pulling code, installing dependencies, running migrations, and restarting services.
 
-1. **SSH_PRIVATE_KEY**: Your server's SSH private key for GitHub Actions
-2. **SERVER_HOST**: Your server's IP address or domain
-3. **SERVER_USERNAME**: SSH username on the server
-4. **SUDO_PASSWORD**: The sudo password for the server user
+#### Required GitHub Secrets
+
+Go to your GitHub repository: **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+
+Add these 8 secrets:
+
+1. **SSH_PRIVATE_KEY**: Your private SSH key
+   ```bash
+   cat ~/.ssh/id_ed25519
+   ```
+   Copy the **entire output** (including `-----BEGIN` and `-----END` lines)
+
+2. **SERVER_HOST**: Your server's IP address (e.g., `64.227.105.186`) or domain
+
+3. **SERVER_USERNAME**: Your non-root username on the server (e.g., `matt`)
+
+4. **SUDO_PASSWORD**: The password for your server user
+
+5. **SECRET_KEY**: Flask secret key - generate with:
+   ```bash
+   python3 -c "import secrets; print(secrets.token_hex(32))"
+   ```
+
+6. **DB_NAME**: PostgreSQL database name (e.g., `myapp_db`)
+
+7. **DB_USER**: PostgreSQL username (e.g., `myapp_user`)
+
+8. **DB_PASSWORD**: PostgreSQL password (use the same password from step 3 of Server Setup)
+
+The deploy workflow will automatically create `local_settings.py` on the server with these credentials.
 
 The CI/CD pipeline will automatically deploy to production when you push to the `main` branch.
 
@@ -214,11 +303,13 @@ sudo tail -f /var/log/nginx/myapp_access.log
 ### Manual Deployment
 
 ```bash
-ssh user@server
-cd myapp
+# SSH to your server (replace with your username and IP)
+ssh youruser@YOUR_SERVER_IP
+
+cd pfa
 git pull
 uv sync
-sh migrate_db.sh
+uv run sh migrate_db.sh
 sudo systemctl restart myapp
 ```
 
@@ -291,7 +382,7 @@ your-project/
 sudo journalctl -u myapp -n 50 --no-pager
 
 # Verify socket file exists
-ls -la ~/myapp/*.sock
+ls -la ~/pfa/*.sock
 
 # Check gunicorn processes
 ps aux | grep gunicorn
@@ -311,7 +402,7 @@ psql -U myapp_user -d myapp_db
 
 ```bash
 # Check if app socket exists
-ls -la /home/youruser/myapp/*.sock
+ls -la /home/youruser/pfa/*.sock
 
 # Check app is running
 sudo systemctl status myapp
