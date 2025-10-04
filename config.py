@@ -11,8 +11,10 @@ class Config(object):
     try:
         import local_settings
         SECRET_KEY = local_settings.SECRET_KEY
+        DATABASE_URL_FROM_SETTINGS = getattr(local_settings, 'DATABASE_URL', None)
     except ImportError:
         SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
+        DATABASE_URL_FROM_SETTINGS = None
     
     RUN_MODE = os.environ.get('RUN_MODE') or 'dev'
     logger.info(f'RUN_MODE: {RUN_MODE}')
@@ -24,9 +26,9 @@ class Config(object):
         SERVER_NAME = '127.0.0.1:5000'
         PREFERRED_URL_SCHEME = 'http'
     elif RUN_MODE == 'prod':
-        SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
-        SERVER_NAME = os.environ.get('SERVER_NAME') or 'yourdomain.com'
-        PREFERRED_URL_SCHEME = 'https'
+        SQLALCHEMY_DATABASE_URI = DATABASE_URL_FROM_SETTINGS or os.environ.get('DATABASE_URL')
+        SERVER_NAME = os.environ.get('SERVER_NAME')  # Optional, leave None for IP-based access
+        PREFERRED_URL_SCHEME = 'http'  # Use https when you have SSL
     elif RUN_MODE == 'test':
         SQLALCHEMY_DATABASE_URI = 'sqlite://'  # In-memory database
         SERVER_NAME = 'localhost:5000'

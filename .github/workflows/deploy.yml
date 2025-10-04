@@ -74,7 +74,8 @@ jobs:
             echo \"$SUDO_PASSWORD\" | sudo -S systemctl daemon-reload &&
             if [ -d /etc/nginx/sites-available ]; then \
               echo \"$SUDO_PASSWORD\" | sudo -S cp ./deploy/configs/nginx/myapp.conf /etc/nginx/sites-available/myapp && \
-              echo \"$SUDO_PASSWORD\" | sudo -S ln -sf /etc/nginx/sites-available/myapp /etc/nginx/sites-enabled/myapp ; \
+              echo \"$SUDO_PASSWORD\" | sudo -S ln -sf /etc/nginx/sites-available/myapp /etc/nginx/sites-enabled/myapp && \
+              echo \"$SUDO_PASSWORD\" | sudo -S rm -f /etc/nginx/sites-enabled/default ; \
             else \
               echo \"$SUDO_PASSWORD\" | sudo -S cp ./deploy/configs/nginx/myapp.conf /etc/nginx/conf.d/myapp.conf ; \
             fi &&
