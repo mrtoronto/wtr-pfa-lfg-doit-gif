@@ -1,0 +1,3 @@
+# Migrations will be generated here by Flask-Migrate
+# This directory will be populated when you run: flask db init
+

@@ -1,0 +1,10 @@
+local_settings.py
+.env
+*.db
+.venv/
+__pycache__/
+**/__pycache__
+.pytest_cache/
+htmlcov/
+.mypy_cache/
+.DS_Store

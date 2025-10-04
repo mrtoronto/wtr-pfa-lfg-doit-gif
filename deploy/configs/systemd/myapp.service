@@ -1,0 +1,18 @@
+[Unit]
+Description=Gunicorn instance to serve MyApp
+After=network.target
+
+[Service]
+User=youruser
+Group=www-data
+WorkingDirectory=/home/youruser/myapp
+Environment="PATH=/home/youruser/.local/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="RUN_MODE=prod"
+ExecStart=/home/youruser/.local/bin/uv run gunicorn --workers 2 -k gevent --bind unix:/home/youruser/myapp/myapp.sock -m 007 wsgi:app
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
+
