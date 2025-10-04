@@ -41,15 +41,8 @@ uv sync --all-groups
 
 # Initialize database
 echo ""
-echo "Initializing database..."
-if [ ! -d migrations/versions ]; then
-    uv run flask db init
-    uv run flask db migrate -m "Initial migration"
-    uv run flask db upgrade
-    echo "✓ Database initialized"
-else
-    echo "✓ Database already initialized"
-fi
+echo "Setting up database..."
+sh migrate_db.sh
 
 echo ""
 echo "=========================================="

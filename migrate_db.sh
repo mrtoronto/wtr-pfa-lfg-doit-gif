@@ -1,9 +1,19 @@
 #!/bin/bash
 export FLASK_APP=app:create_migration_app
-echo "Starting database migration..."
+
+# Initialize migrations if not already done
+if [ ! -f migrations/env.py ]; then
+    echo "Initializing Flask-Migrate..."
+    if [ -d migrations ]; then
+        rm -rf migrations
+    fi
+    flask db init
+    echo "✓ Migrations initialized"
+fi
+
+echo "Creating/updating migrations..."
 flask db migrate
-echo "Database migration completed."
-echo "Database upgrade..."
+echo "Applying migrations to database..."
 flask db upgrade
-echo "Database upgrade completed."
+echo "✓ Database is up to date!"
 

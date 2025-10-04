@@ -33,6 +33,10 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 git clone <your-repo-url>
 cd <your-repo-name>
 
+# Quick setup (recommended)
+./setup_dev.sh
+
+# OR Manual setup:
 # Install dependencies
 uv sync --all-groups
 
@@ -43,10 +47,8 @@ cp .flaskenv.example .flaskenv
 cp local_settings.example.py local_settings.py
 # Edit local_settings.py and set your SECRET_KEY
 
-# Initialize database
-uv run flask db init
-uv run flask db migrate -m "Initial migration"
-uv run flask db upgrade
+# Setup database
+uv run sh migrate_db.sh
 ```
 
 ### Running the Application
@@ -66,16 +68,13 @@ Visit `http://127.0.0.1:5000` in your browser.
 
 ### Database Migrations
 
+Whenever you make changes to your models or need to update the database:
+
 ```bash
-# Create a new migration after model changes
-uv run flask db migrate -m "Description of changes"
-
-# Apply migrations
-uv run flask db upgrade
-
-# Or use the make command
-make migrate
+uv run sh migrate_db.sh
 ```
+
+That's it! The script handles initialization, migration creation, and database updates automatically.
 
 ### Running Tests
 

@@ -8,3 +8,6 @@ __pycache__/
 htmlcov/
 .mypy_cache/
 .DS_Store
+
+# Ignore entire migrations folder - it's auto-generated
+migrations/
