@@ -3,7 +3,7 @@ Description=Gunicorn instance to serve MyApp
 After=network.target
 
 [Service]
-User=youruser
+User=matt
 Group=www-data
 WorkingDirectory=/home/matt/pfa
 Environment="PATH=/home/matt/.local/bin:/usr/local/bin:/usr/bin:/bin"
